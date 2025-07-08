@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="card max-w-md mx-auto mt-10">
+    <h1 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">Create Your Account</h1>
+
+    <form method="POST" class="space-y-6">
+        <div>
+            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <input type="text" id="username" name="username" required
+                   class="input-field" placeholder="Choose a username">
+        </div>
+
+        <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="password" name="password" required
+                   class="input-field" placeholder="Enter your password">
+        </div>
+
+        <div>
+            <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required
+                   class="input-field" placeholder="Confirm your password">
+        </div>
+
+        <button type="submit" class="btn-primary w-full">Sign Up</button>
+    </form>
+
+    <p class="mt-6 text-center text-gray-600">
+        Already have an account? <a href="{{ url_for('login') }}" class="text-blue-600 hover:underline font-semibold">Log In</a>
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Account Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-chart-bar me-2"></i>Reports</h1>
+</div>
+
+<!-- Report Options -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user me-2"></i>Customer-wise Reports</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Generate detailed reports for individual customers including transaction history, interest calculations, and current balance.</p>
+                
+                <div class="mb-3">
+                    <label for="customer_select" class="form-label">Select Customer</label>
+                    <select class="form-select" id="customer_select">
+                        <option value="">Choose a customer...</option>
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}">{{ customer.icl_no }} - {{ customer.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="viewCustomerReport()">
+                        <i class="fas fa-eye me-1"></i>View Report
+                    </button>
+                    <button class="btn btn-success" onclick="exportCustomerReport()">
+                        <i class="fas fa-file-excel me-1"></i>Export to Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-calendar me-2"></i>Period-based Reports</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Generate consolidated reports for all customers within a specific date range.</p>
+                
+                <form method="POST" action="{{ url_for('export_period_report') }}">
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" onclick="viewPeriodReport()">
+                            <i class="fas fa-eye me-1"></i>Preview Report
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-file-excel me-1"></i>Export to Excel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Summary -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="fas fa-chart-line me-2"></i>Quick Summary</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h4 class="text-primary">{{ customers|length }}</h4>
+                    <p class="text-muted">Total Customers</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h4 class="text-success">₹{{ "{:,.2f}".format(customers|map(attribute='current_balance')|sum|default(0)) }}</h4>
+                    <p class="text-muted">Total Outstanding</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h4 class="text-info">{{ customers|selectattr('interest_type', 'equalto', 'simple')|list|length }}</h4>
+                    <p class="text-muted">Simple Interest</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h4 class="text-warning">{{ customers|selectattr('interest_type', 'equalto', 'compound')|list|length }}</h4>
+                    <p class="text-muted">Compound Interest</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Reports Table -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="fas fa-table me-2"></i>Customer Summary</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped" id="customerReportsTable">
+                <thead>
+                    <tr>
+                        <th>ICL No</th>
+                        <th>Customer Name</th>
+                        <th>Interest Rate</th>
+                        <th>Interest Type</th>
+                        <th>Current Balance</th>
+                        <th>TDS Applicable</th>
+                        <th>Start Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>{{ customer.icl_no }}</td>
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.annual_rate }}%</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if customer.interest_type == 'simple' else 'warning' }}">
+                                {{ customer.interest_type.title() }}
+                            </span>
+                        </td>
+                        <td>₹{{ "{:,.2f}".format(customer.current_balance) }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if customer.tds_applicable else 'secondary' }}">
+                                {{ 'Yes' if customer.tds_applicable else 'No' }}
+                            </span>
+                        </td>
+                        <td>{{ customer.icl_start_date.strftime('%d-%m-%Y') }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('customer_profile', customer_id=customer.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('export_customer_report', customer_id=customer.id) }}" 
+                                   class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-file-excel"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Report Preview Modal -->
+<div class="modal fade" id="reportPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-bar me-2"></i>Report Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reportPreviewContent">
+                    <!-- Report content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    if (!$.fn.DataTable.isDataTable('#customerReportsTable')) {
+        $('#customerReportsTable').DataTable({
+            responsive: true,
+            pageLength: 25,
+            order: [[0, 'asc']]
+        });
+    }
+    
+    // Set default date range (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    $('#end_date').val(today.toISOString().split('T')[0]);
+    $('#start_date').val(thirtyDaysAgo.toISOString().split('T')[0]);
+});
+
+function viewCustomerReport() {
+    const customerId = $('#customer_select').val();
+    if (!customerId) {
+        alert('Please select a customer');
+        return;
+    }
+    
+    // Redirect to customer profile
+    window.location.href = `/customer_profile/${customerId}`;
+}
+
+function exportCustomerReport() {
+    const customerId = $('#customer_select').val();
+    if (!customerId) {
+        alert('Please select a customer');
+        return;
+    }
+    
+    // Redirect to export URL
+    window.location.href = `/export_customer_report/${customerId}`;
+}
+
+function viewPeriodReport() {
+    const startDate = $('#start_date').val();
+    const endDate = $('#end_date').val();
+    
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates');
+        return;
+    }
+    
+    if (new Date(startDate) > new Date(endDate)) {
+        alert('Start date cannot be later than end date');
+        return;
+    }
+    
+    // Show loading in modal
+    $('#reportPreviewContent').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading report preview...</p>
+        </div>
+    `);
+    
+    $('#reportPreviewModal').modal('show');
+    
+    // Simulate loading period report preview
+    setTimeout(() => {
+        $('#reportPreviewContent').html(`
+            <div class="alert alert-info">
+                <h5>Period Report: ${startDate} to ${endDate}</h5>
+                <p>This preview shows the structure of the period report. Click "Export to Excel" to download the full report with all transaction details.</p>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Customer ICL</th>
+                            <th>Customer Name</th>
+                            <th>Total Transactions</th>
+                            <th>Total Interest</th>
+                            <th>Total TDS</th>
+                            <th>Net Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                Use "Export to Excel" to generate the complete report
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `);
+    }, 1000);
+}
+</script>
+{% endblock %}
