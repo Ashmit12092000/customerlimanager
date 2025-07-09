@@ -82,7 +82,7 @@
                 <table class="table table-borderless">
                     <tr>
                         <th width="40%">Start Date:</th>
-                        <td>{{ customer.icl_start_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ customer.icl_start_date.strftime('%d-%m-%Y') if customer.icl_start_date else 'N/A' }}</td>
                     </tr>
                     <tr>
                         <th>End Date:</th>

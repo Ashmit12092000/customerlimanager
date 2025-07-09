@@ -12,6 +12,11 @@ def calculate_interest(principal, annual_rate, days):
     if not principal or not annual_rate or not days:
         return Decimal('0')
     
+    # Ensure all values are Decimal
+    principal = Decimal(str(principal))
+    annual_rate = Decimal(str(annual_rate))
+    days = Decimal(str(days))
+    
     # Simple interest formula: (P * R * T) / 100
     # Where T is in years (days/365)
     interest = (principal * annual_rate * days) / (Decimal('100') * Decimal('365'))
@@ -21,6 +26,11 @@ def calculate_compound_interest(principal, annual_rate, days, frequency):
     """Calculate compound interest for given principal, rate, days and frequency"""
     if not principal or not annual_rate or not days or not frequency:
         return Decimal('0')
+    
+    # Ensure all values are Decimal
+    principal = Decimal(str(principal))
+    annual_rate = Decimal(str(annual_rate))
+    days = Decimal(str(days))
     
     # Convert frequency to compounding periods per year
     if frequency == 'monthly':
@@ -33,13 +43,14 @@ def calculate_compound_interest(principal, annual_rate, days, frequency):
         n = 1
     
     # Convert days to years
-    t = Decimal(days) / Decimal('365')
+    t = days / Decimal('365')
     
     # Compound interest formula: P * (1 + r/n)^(nt) - P
     r = annual_rate / Decimal('100')
+    n = Decimal(str(n))
     
     # Using decimal arithmetic for precision
-    amount = principal * ((1 + r/n) ** (n * t))
+    amount = principal * ((Decimal('1') + r/n) ** (n * t))
     compound_interest = amount - principal
     
     return compound_interest.quantize(Decimal('0.01'))
@@ -144,13 +155,13 @@ def export_to_excel(customer, transactions):
             if col > 4:  # Align numbers to right
                 cell.alignment = Alignment(horizontal='right')
         
-        # Add to totals
-        if transaction.int_amount:
-            total_int_amount += transaction.int_amount
-        if transaction.tds_amount:
-            total_tds += transaction.tds_amount
-        if transaction.net_amount:
-            total_net += transaction.net_amount
+        # Add to totals (with proper decimal handling)
+        if transaction.int_amount is not None:
+            total_int_amount += Decimal(str(transaction.int_amount))
+        if transaction.tds_amount is not None:
+            total_tds += Decimal(str(transaction.tds_amount))
+        if transaction.net_amount is not None:
+            total_net += Decimal(str(transaction.net_amount))
         if transaction.no_of_days:
             total_days += transaction.no_of_days
     
@@ -251,13 +262,13 @@ def get_period_report(start_date, end_date):
             if col > 6:  # Align numbers to right
                 cell.alignment = Alignment(horizontal='right')
         
-        # Add to totals
-        if transaction.int_amount:
-            total_int_amount += transaction.int_amount
-        if transaction.tds_amount:
-            total_tds += transaction.tds_amount
-        if transaction.net_amount:
-            total_net += transaction.net_amount
+        # Add to totals (with proper decimal handling)
+        if transaction.int_amount is not None:
+            total_int_amount += Decimal(str(transaction.int_amount))
+        if transaction.tds_amount is not None:
+            total_tds += Decimal(str(transaction.tds_amount))
+        if transaction.net_amount is not None:
+            total_net += Decimal(str(transaction.net_amount))
     
     # Totals row
     row += 1

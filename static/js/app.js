@@ -1,6 +1,3 @@
-// Loan Management System - Main JavaScript File
-
-// Global Application Object
 const LoanApp = {
     // Configuration
     config: {

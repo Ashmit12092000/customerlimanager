@@ -176,10 +176,10 @@
 {% block scripts %}
 <script>
 $(document).ready(function() {
-    const currentBalance = {{ customer.current_balance }};
-    const annualRate = {{ customer.annual_rate }};
-    const interestType = '{{ customer.interest_type }}';
-    const compoundFrequency = '{{ customer.compound_frequency }}';
+    const currentBalance = {{ customer.current_balance or 0 }};
+    const annualRate = {{ customer.annual_rate or 0 }};
+    const interestType = '{{ customer.interest_type or "simple" }}';
+    const compoundFrequency = '{{ customer.compound_frequency or "monthly" }}';
     
     if (!$.fn.DataTable.isDataTable('#transactionsTable')) {
         $('#transactionsTable').DataTable({

@@ -193,9 +193,9 @@ def transactions(customer_id):
             amount_paid = Decimal(request.form['amount_paid']) if request.form['amount_paid'] else None
             amount_repaid = Decimal(request.form['amount_repaid']) if request.form['amount_repaid'] else None
             
-            # Calculate new balance
-            current_balance = customer.get_current_balance()
-            new_balance = current_balance + (amount_paid or 0) - (amount_repaid or 0)
+            # Calculate new balance (ensure all types are Decimal)
+            current_balance = Decimal(str(customer.get_current_balance()))
+            new_balance = current_balance + (amount_paid or Decimal('0')) - (amount_repaid or Decimal('0'))
             
             # Calculate interest if period is specified
             period_from = datetime.strptime(request.form['period_from'], '%Y-%m-%d').date() if request.form.get('period_from') else None

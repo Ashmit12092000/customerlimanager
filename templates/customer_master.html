@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Customer Master - Account Management System{% endblock %}
+{% block title %}Customer Master - Loan Management System{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -179,7 +179,7 @@
                                 {{ customer.interest_type.title() }}
                             </span>
                         </td>
-                        <td>{{ customer.icl_start_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ customer.icl_start_date.strftime('%d-%m-%Y') if customer.icl_start_date else 'N/A' }}</td>
                         <td>
                             <span class="badge bg-{{ 'success' if customer.tds_applicable else 'secondary' }}">
                                 {{ 'Yes' if customer.tds_applicable else 'No' }}

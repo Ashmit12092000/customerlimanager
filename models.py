@@ -39,9 +39,10 @@ class Customer(db.Model):
     @property
     def current_balance(self):
         """Calculate current balance based on transactions"""
-        total_paid = sum(float(t.amount_paid or 0) for t in self.transactions if t.amount_paid)
-        total_repaid = sum(float(t.amount_repaid or 0) for t in self.transactions if t.amount_repaid)
-        return total_paid - total_repaid
+        from decimal import Decimal
+        total_paid = sum(Decimal(str(t.amount_paid or 0)) for t in self.transactions)
+        total_repaid = sum(Decimal(str(t.amount_repaid or 0)) for t in self.transactions)
+        return float(total_paid - total_repaid)
     
     def get_current_balance(self):
         """Calculate current balance based on transactions (method version for backward compatibility)"""
